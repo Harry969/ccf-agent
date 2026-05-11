@@ -1,0 +1,48 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{CCF-Agent: A Configurable Template for Algorithmic Paper Writing}
+\author{Anonymous Authors}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study how to make an algorithm-writing agent more reliable for paper drafting. The problem is not only to generate fluent text, but to preserve technical context, expose the core observation, justify correctness, and produce LaTeX that can enter a normal paper workflow.
+\end{abstract}
+
+\section{Problem Framing}
+The task is to turn a problem statement, method sketch, and author preference into a rigorous paper section. The input consists of context notes, a target venue, a style skill, and few-shot examples. The output is a LaTeX draft that explains the algorithm rather than merely listing code.
+
+\section{Baseline And Bottleneck}
+A direct baseline sends the raw notes to a model and asks for a section. This often produces readable prose, but the bottleneck is control: the draft may skip the baseline, omit edge cases, blur the proof, or introduce claims not present in the notes.
+
+\section{Core Observation}
+The key observation is that writing quality can be decomposed into explicit constraints. The context prompt controls facts, the few-shot example controls pacing, the style skill controls voice, and the harness checks whether required technical signals remain present.
+
+\section{Algorithm Design}
+The agent first renders a prompt bundle from configuration. It then asks the selected model to produce a section under the LaTeX output contract. Finally, it runs a deterministic harness over the draft and sends failures back through a review prompt.
+
+\begin{algorithm}
+\caption{Paper Section Drafting Loop}
+\begin{algorithmic}[1]
+\State Render context, style, model profile, and few-shot examples.
+\State Generate a LaTeX section with the selected model.
+\State Evaluate problem framing, baseline, core observation, algorithm, proof, complexity, and edge cases.
+\State Revise until the harness and human review accept the draft.
+\end{algorithmic}
+\end{algorithm}
+
+\section{Correctness}
+The loop is correct as a guardrail because each required part of the algorithm section is represented as an explicit signal. If a draft omits the problem, proof, or complexity discussion, the harness rejects it. If the draft passes, it has at least exposed the structure needed for human verification.
+
+\section{Complexity}
+Let $n$ be the number of characters in the generated draft and $k$ the number of required signal groups. The deterministic harness scans the text for each group, so its time complexity is $O(kn)$ and its space complexity is $O(n)$ for the loaded draft.
+
+\section{Implementation Details And Edge Cases}
+The implementation should treat placeholder text as a warning, require full LaTeX structure for complete papers, and avoid storing API keys in configuration. Edge cases include empty drafts, drafts that only satisfy keywords without substance, and sections that need facts not present in context.
+
+\end{document}

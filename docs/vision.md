@@ -1,31 +1,14 @@
-# 项目愿景
+# Vision
 
-`ccf-agent` 不是单纯让模型“写一段算法解析”，而是把一套稳定的写作工艺固化下来。
+`ccf-agent` treats paper writing as an agent workflow rather than a single prompt.
 
-## 核心判断
+The motivating observation is simple: a strong model becomes much more useful when it is surrounded by the right constraints. Long reasoning helps with structure, few-shot examples define pacing, context prompts prevent drift, a writing-style skill preserves voice, and a harness catches the boring omissions that humans often notice only after fatigue sets in.
 
-强模型真正好用的地方不是替人堆文字，而是把抽象问题拆开、把关键转折讲清楚、把读者可能卡住的位置提前照亮。算法章节尤其需要这种能力，因为它同时要求：
+The project is not tied to one model. The reference recipe uses `opus4.7-max thinking` as a named example, but the repository keeps model choice in configuration so users can swap providers, local models, or API clients.
 
-- 技术上不能错。
-- 结构上要有推进。
-- 解释上要能被人跟上。
-- 风格上不能像模板拼接。
+## Design Principles
 
-## 理想输出
-
-一章好的算法内容应该包含：
-
-- 问题要解决什么，以及输入输出和约束。
-- 朴素想法为什么不够。
-- 核心观察是怎么来的。
-- 算法步骤如何落到实现。
-- 正确性为什么成立。
-- 时间复杂度和空间复杂度。
-- 常见坑、边界条件和调试提示。
-
-## Agent 设计原则
-
-- Prompt 负责边界，few-shot 负责质感，skill 负责个人味道，harness 负责稳定性。
-- 所有可复用内容都应该版本化。
-- 每次生成都应该可回放、可比较、可评审。
-
+- The paper remains the user's paper; the agent should expose assumptions instead of inventing facts.
+- LaTeX is the primary artifact, because paper workflows need diffs, comments, and compilation.
+- Prompts are versioned beside examples and harness checks, so writing quality can improve through regression testing.
+- The harness is intentionally lightweight at first. It should catch missing structure, not pretend to replace expert review.

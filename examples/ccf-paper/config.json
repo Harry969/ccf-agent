@@ -1,0 +1,60 @@
+{
+  "model": {
+    "provider": "anthropic-or-custom",
+    "name": "opus4.7-max",
+    "reasoning": "max thinking",
+    "temperature": 0.2,
+    "max_tokens": 12000
+  },
+  "context": {
+    "target_venue": "top conference paper with CCF-style algorithm exposition",
+    "paper_goal": "demonstrate a reusable workflow for writing rigorous algorithm sections",
+    "audience": "researchers and advanced students who want derivations, proofs, and implementation notes",
+    "source": "context.md",
+    "constraints": [
+      "all generated content must be valid LaTeX",
+      "do not fabricate empirical results",
+      "mark missing paper-specific facts as author notes"
+    ]
+  },
+  "style": {
+    "path": "../../skills/personal-writing-style.md",
+    "forbidden": ["obviously", "clearly", "novel paradigm"]
+  },
+  "few_shot": {
+    "path": "../few-shot/algorithm-chapter.md"
+  },
+  "latex": {
+    "template": "../../templates/latex/conference-paper.tex",
+    "title": "CCF-Agent: A Configurable Template for Algorithmic Paper Writing",
+    "authors": "Anonymous Authors",
+    "abstract_seed": "We describe a configurable agent workflow that combines a strong reasoning model, few-shot examples, context prompts, author style skills, and a lightweight harness to draft rigorous LaTeX algorithm sections.",
+    "output_contract": "Return only LaTeX. The draft must include problem framing, baseline, core observation, algorithm design, correctness, complexity, and edge cases.",
+    "sections": [
+      {
+        "name": "Introduction",
+        "file": "sections/introduction.tex",
+        "seed": "Introduce the need for reliable algorithm-writing agents and the role of configuration."
+      },
+      {
+        "name": "Agent Workflow",
+        "file": "sections/agent-workflow.tex",
+        "seed": "Explain how model profile, context prompt, few-shot examples, style skill, and harness interact."
+      },
+      {
+        "name": "Algorithm Chapter Drafting",
+        "file": "sections/algorithm-chapter-drafting.tex",
+        "seed": "Give a CCF-style algorithm writing template covering problem framing, baseline, observation, design, proof, complexity, and edge cases."
+      },
+      {
+        "name": "Harness",
+        "file": "sections/harness.tex",
+        "seed": "Describe structural checks, placeholder checks, and how human review remains necessary."
+      }
+    ]
+  },
+  "harness": {
+    "require_latex": true,
+    "minimum_sections": 4
+  }
+}

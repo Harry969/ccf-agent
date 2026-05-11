@@ -1,54 +1,38 @@
 from __future__ import annotations
 
 import argparse
-import re
 from pathlib import Path
+import sys
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-REQUIRED_SIGNALS = {
-    "problem": ["问题", "题目", "输入", "输出"],
-    "baseline": ["朴素", "直接", "瓶颈", "复杂度"],
-    "observation": ["核心观察", "关键", "状态", "性质"],
-    "algorithm": ["算法", "步骤", "转移", "维护"],
-    "correctness": ["正确性", "证明", "不会漏", "最优"],
-    "complexity": ["时间复杂度", "空间复杂度", "O("],
-    "edge_cases": ["边界", "实现", "容易出错", "注意"],
-}
-
-
-def normalize(text: str) -> str:
-    return re.sub(r"\s+", "", text)
-
-
-def evaluate(text: str) -> list[str]:
-    compact = normalize(text)
-    missing: list[str] = []
-
-    for section, signals in REQUIRED_SIGNALS.items():
-        if not any(signal in compact for signal in signals):
-            missing.append(section)
-
-    return missing
+from ccf_agent.harness import evaluate_file
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check an algorithm chapter draft.")
-    parser.add_argument("chapter", type=Path, help="Markdown chapter file to check")
+    parser = argparse.ArgumentParser(description="Check a CCF/paper draft.")
+    parser.add_argument("draft", type=Path, help="Markdown or LaTeX draft to check.")
+    parser.add_argument("--require-latex", action="store_true", help="Require full LaTeX document structure.")
     args = parser.parse_args()
 
-    text = args.chapter.read_text(encoding="utf-8")
-    missing = evaluate(text)
+    result = evaluate_file(args.draft, require_latex=args.require_latex or args.draft.suffix == ".tex")
 
-    if missing:
+    if result.warnings:
+        print("Warnings:")
+        for warning in result.warnings:
+            print(f"- {warning}")
+
+    if result.missing:
         print("Missing signals:")
-        for item in missing:
+        for item in result.missing:
             print(f"- {item}")
         return 1
 
-    print("Chapter passes the lightweight structure check.")
+    print("Draft passes the lightweight harness.")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

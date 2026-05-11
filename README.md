@@ -1,63 +1,108 @@
 # ccf-agent
 
-一个面向 CCF 风格算法章节写作的 agent 项目。目标是把强模型的长思考能力、few-shot、评测 harness、上下文 prompt 和个人写作风格 skill 组合成一套可复用的写作系统。
+`ccf-agent` is an open template for drafting competition-algorithm and top-conference-style paper sections with a reusable agent stack:
 
-## 为什么做
+```text
+strong reasoning model + few-shot examples + harness + context prompt
++ personal writing style skill + configurable LaTeX paper template
+```
 
-我想把“算法章节写得既准确又有作者感”这件事产品化：
+The first reference recipe is:
 
-- 用强模型承担结构推理和技术展开。
-- 用 few-shot 固定章节颗粒度、解释节奏和推导密度。
-- 用 context prompt 固定写作任务、读者画像、边界和禁区。
-- 用个人写作风格 skill 保留稳定的语气、表达偏好和审美。
-- 用 harness 检查章节是否真的覆盖了问题定义、核心思路、复杂度、边界条件和可读性。
+```text
+opus4.7-max thinking + few-shot + harness + context prompt
++ personal writing style skill + ccf agent writes the paper
+```
 
-## 项目结构
+The project is intentionally model-agnostic. You can point it at any model/API in your own runner, while this repository provides the prompts, context contract, LaTeX skeleton, examples, and quality harness.
+
+## What It Generates
+
+- A complete conference paper scaffold in LaTeX.
+- Algorithm chapters with problem framing, observations, method, proof, complexity, and implementation notes.
+- Prompt bundles that combine user context, few-shot examples, style skill, model profile, and output contract.
+- Lightweight checks for missing technical sections, placeholder leakage, and LaTeX structure.
+
+## Quick Start
+
+Render a prompt bundle from the example configuration:
+
+```powershell
+python -m ccf_agent.cli render --config examples/ccf-paper/config.json --out build/prompt.md
+```
+
+Create a starter LaTeX paper from the same configuration:
+
+```powershell
+python -m ccf_agent.cli init-paper --config examples/ccf-paper/config.json --out build/paper
+```
+
+Run the harness on the included sample output:
+
+```powershell
+python harness/evaluate.py examples/ccf-paper/expected-output.tex
+```
+
+Or use the console script after installing locally:
+
+```powershell
+pip install -e .
+ccf-agent render --config examples/ccf-paper/config.json --out build/prompt.md
+ccf-agent init-paper --config examples/ccf-paper/config.json --out build/paper
+ccf-agent evaluate examples/ccf-paper/expected-output.tex
+```
+
+## Repository Layout
 
 ```text
 ccf-agent/
+  ccf_agent/                 # stdlib-only CLI and prompt renderer
+  config/
+    default.json             # model/profile/template defaults
   docs/
-    vision.md
+    workflow.md              # end-to-end agent workflow
+    customization.md         # how users replace context/style/model/API
+    vision.md                # project philosophy
   examples/
-    few-shot/
-      algorithm-chapter.md
+    ccf-paper/               # complete paper-writing example
+    few-shot/                # focused algorithm-section example
   harness/
-    README.md
-    evaluate.py
+    evaluate.py              # standalone quality checks
+  paper/
+    main.tex                 # editable paper scaffold
+    sections/
   prompts/
-    algorithm-chapter.md
-    context.md
+    *.md                     # system, context, paper, algorithm, review prompts
   skills/
     personal-writing-style.md
-  .gitignore
-  README.md
+  templates/
+    latex/
 ```
 
-## 快速开始
+## Configuration
 
-先生成一个章节草稿：
+All user-facing behavior starts from JSON configuration. The default example is `examples/ccf-paper/config.json`.
 
-```powershell
-python harness/evaluate.py examples/few-shot/algorithm-chapter.md
-```
+You can customize:
 
-当前 harness 先做结构和关键词检查，后续可以接入模型评审、回归样例和多维打分。
+- `model`: provider, model name, temperature, max tokens, and thinking profile.
+- `context`: target venue, audience, paper goal, constraints, terminology, and source files.
+- `style`: personal writing style skill and forbidden expressions.
+- `latex`: template, title, authors, abstract seed, sections, and bibliography path.
+- `few_shot`: examples that define pacing and technical density.
+- `harness`: checks that must pass before a draft is considered usable.
 
-## Agent 配方
+No secret keys are stored in this repository. Put API keys in your own environment or orchestration layer.
 
-基础组合：
+## Agent Loop
 
-1. `prompts/context.md`：全局任务、读者、输出边界。
-2. `prompts/algorithm-chapter.md`：单章生成指令。
-3. `skills/personal-writing-style.md`：个人写作风格约束。
-4. `examples/few-shot/algorithm-chapter.md`：目标章节样例。
-5. `harness/evaluate.py`：输出质量检查。
+1. Collect paper context: problem, contribution, method, experiments, target venue, and author style.
+2. Render a prompt bundle with `ccf-agent render`.
+3. Ask the chosen model to draft or revise a LaTeX section.
+4. Save the generated `.tex` into the paper scaffold.
+5. Run `ccf-agent evaluate` or `python harness/evaluate.py`.
+6. Iterate with `prompts/review.md` until the harness and human review agree.
 
-## Roadmap
+## License
 
-- [ ] 增加真实 CCF 算法章节样例集。
-- [ ] 支持从题面自动提取问题定义、约束和算法标签。
-- [ ] 增加章节质量评分：正确性、完整性、推导清晰度、风格一致性。
-- [ ] 支持多模型生成和交叉评审。
-- [ ] 增加 CLI：`ccf-agent draft`、`ccf-agent review`、`ccf-agent polish`。
-
+MIT. Use it as a base for your own paper-writing agent, prompt harness, or model comparison workflow.

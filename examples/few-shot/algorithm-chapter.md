@@ -1,44 +1,29 @@
-# 示例：最长上升子序列
+# Few-Shot: Algorithm Chapter
 
-## 问题理解
+## Problem Framing
 
-给定一个长度为 `n` 的序列，我们要从中选出若干个元素，使它们在原序列中的相对顺序不变，并且数值严格递增。目标是让选出的元素个数尽可能多。
+Given an array and a limit on the number of modifications, the task is to maximize the length of a segment that can be made valid. The input size is large enough that enumerating every segment and rebuilding its state would be too slow.
 
-这个问题的限制来自“子序列”而不是“子数组”：我们可以跳过元素，但不能改变元素顺序。
+## Baseline And Bottleneck
 
-## 朴素思路与瓶颈
+The direct baseline is to test each interval independently. Even if validity can be checked in linear time per left endpoint, the total cost is quadratic. The bottleneck is that adjacent intervals share almost all of their information, but the baseline discards it.
 
-最直接的想法是枚举所有子序列，再检查它是否严格递增。长度为 `n` 的序列有 `2^n` 个子序列，这个复杂度很快就无法接受。
+## Core Observation
 
-更有价值的思路是问：如果一个上升子序列必须以第 `i` 个元素结尾，那么它前一个元素可能是谁？
+For a fixed right endpoint, if an interval is valid, then removing elements from the left cannot make it invalid. This monotonicity lets us maintain the minimal left boundary with a sliding window.
 
-## 核心观察
+## Algorithm Design
 
-设 `dp[i]` 表示以 `a[i]` 结尾的最长上升子序列长度。只要存在 `j < i` 且 `a[j] < a[i]`，就可以把 `a[i]` 接在一个以 `a[j]` 结尾的上升子序列后面。
+We scan the right endpoint from left to right. The maintained state records the current interval and the number of modifications needed to make it valid. Whenever the cost exceeds the limit, we move the left endpoint until validity is restored. The best answer is the maximum window length seen after restoration.
 
-因此，`dp[i]` 的值只依赖于它前面那些比 `a[i]` 小的位置。
+## Correctness
 
-## 算法设计
+The algorithm never misses an optimal interval because every right endpoint is considered. For that endpoint, the while loop stops at the smallest left boundary that makes the interval valid; every longer invalid interval has already been excluded, and every shorter valid interval is no better than the maintained one.
 
-初始化所有 `dp[i] = 1`，表示每个元素单独都可以构成长度为 1 的上升子序列。
+## Complexity
 
-从左到右枚举 `i`。对于每个 `i`，再枚举所有 `j < i`。如果 `a[j] < a[i]`，说明 `a[i]` 可以接在 `j` 后面，此时用 `dp[j] + 1` 更新 `dp[i]`。
+Each endpoint moves monotonically from left to right. Therefore the time complexity is `O(n)`, and the space complexity is `O(1)` or `O(|Σ|)` depending on the maintained frequency structure.
 
-最终答案是所有 `dp[i]` 的最大值，因为最长上升子序列可以结束在任意位置。
+## Edge Cases
 
-## 正确性说明
-
-对任意位置 `i`，所有以 `a[i]` 结尾的合法上升子序列，如果长度大于 1，那么它的倒数第二个元素必然来自某个 `j < i`，且满足 `a[j] < a[i]`。算法枚举了所有这样的 `j`，因此不会漏掉任何可能的前驱。
-
-同时，算法只在 `a[j] < a[i]` 时转移，所以构造出的序列一定保持严格递增。由此可知，`dp[i]` 恰好等于以 `a[i]` 结尾的最长上升子序列长度。取所有结尾位置的最大值，就得到全局最优答案。
-
-## 复杂度分析
-
-外层枚举 `i`，内层枚举 `j < i`，总时间复杂度为 `O(n^2)`。数组 `dp` 长度为 `n`，空间复杂度为 `O(n)`。
-
-## 实现细节与边界条件
-
-- 如果 `n = 0`，需要根据题目定义返回 0 或处理为空输入。
-- 严格上升使用 `<`，不是 `<=`。
-- 答案不是 `dp[n - 1]`，而是整个 `dp` 数组的最大值。
-
+The implementation must handle empty windows after shrinking, limits equal to zero, and repeated values that make the maintained cost change by more than one if updated in the wrong order.

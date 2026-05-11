@@ -1,34 +1,21 @@
 # Algorithm Chapter Prompt
 
-请根据给定题面或算法主题，撰写一章 CCF 风格算法讲解。
+Write a CCF-style algorithm chapter or paper method section in LaTeX.
 
-## 输入
+## Required Sections
 
-- 题目名称：
-- 题面：
-- 输入输出格式：
-- 数据范围：
-- 目标读者：
-- 期望算法：
-- 特殊风格要求：
+1. Problem framing: restate the task, input, output, constraints, and objective.
+2. Baseline and bottleneck: explain the direct solution and why it fails.
+3. Core observation: state the invariant, monotonicity, exchange argument, recurrence, or structural property.
+4. Algorithm design: define states, transitions, maintained data, and full procedure.
+5. Correctness proof: connect each step of the algorithm to the observation.
+6. Complexity analysis: define all variables and give time and space bounds.
+7. Implementation details and edge cases: identify mistakes that can break a correct idea.
 
-## 输出要求
+## Quality Bar
 
-请输出一篇完整章节，包含：
-
-1. 问题理解：用自己的话解释题目到底要求什么。
-2. 朴素思路：说明直接做法及其复杂度瓶颈。
-3. 核心观察：写出算法成立的关键原因。
-4. 算法设计：分步骤描述状态、转移、数据结构或流程。
-5. 正确性说明：用简洁但完整的论证说明为什么答案正确。
-6. 复杂度分析：给出时间复杂度与空间复杂度。
-7. 实现细节：列出容易写错的地方和边界条件。
-
-## 质量标准
-
-- 段落之间有自然推进，不要像 checklist。
-- 核心观察要具体，不能只写“可以发现”。
-- 正确性论证要和算法设计对应。
-- 复杂度要说明变量含义。
-- 风格要贴近给定个人写作 skill。
-
+- The core observation must be concrete enough that a reader could rederive the algorithm from it.
+- The proof must match the described algorithm, not a different idealized version.
+- Complexity must name the variables it depends on.
+- Avoid writing only code comments. The output is a paper/chapter section, not a solution note.
+- Keep paragraphs connected; the section should feel like a guided derivation.
