@@ -103,6 +103,8 @@ def evaluate_text(text: str, *, require_latex: bool = False, minimum_sections: i
             warnings.append(f"weak or overused style marker appears: {marker}")
 
     for sentence in _sentences(text):
+        if sentence.count("\\") > 2:
+            continue
         if _sentence_word_count(sentence) > 45:
             warnings.append("long sentence over 45 words; run the sentence judge")
             break

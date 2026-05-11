@@ -3,6 +3,7 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{booktabs}
 
 \title{CCF-Agent: A Configurable Template for Algorithmic Paper Writing}
 \author{Anonymous Authors}
@@ -14,35 +15,66 @@
 We study how to make an algorithm-writing agent more reliable for paper drafting. The problem is not only to generate fluent text, but to preserve technical context, expose the core observation, justify correctness, and produce LaTeX that can enter a normal paper workflow.
 \end{abstract}
 
+\section{Introduction}
+Algorithm-writing agents are useful only when they can be steered with the same discipline that a paper demands. A strong model can draft a paragraph, but a paper section still fails if the prompt omits the bottleneck, the notation appears too late, or the proof no longer matches the construction. This project packages the writing task as a reproducible loop with explicit context, few-shot examples, a personal style skill, a LaTeX contract, and a harness.
+
 \section{Problem Framing}
 The task is to turn a problem statement, method sketch, and author preference into a rigorous paper section. The input consists of context notes, a target venue, a style skill, and few-shot examples. The output is a LaTeX draft that explains the algorithm rather than merely listing code.
 
 \section{Baseline And Bottleneck}
-A direct baseline sends the raw notes to a model and asks for a section. This often produces readable prose, but the bottleneck is control: the draft may skip the baseline, omit edge cases, blur the proof, or introduce claims not present in the notes.
+A direct baseline sends the raw notes to a model and asks for a section. This often produces readable prose, but the bottleneck is control: the draft may skip the baseline, omit edge cases, blur the proof, or introduce claims not present in the notes. In practice, the failure is not syntax but missing structure.
 
 \section{Core Observation}
-The key observation is that writing quality can be decomposed into explicit constraints. The context prompt controls facts, the few-shot example controls pacing, the style skill controls voice, and the harness checks whether required technical signals remain present.
+The key observation is that writing quality can be decomposed into explicit constraints. The context prompt controls facts, the few-shot example controls pacing, the style skill controls voice, and the harness checks whether required technical signals remain present. We can summarize the prompt bundle as
+\begin{equation}\label{eq:bundle}
+B = \mathrm{Render}(C, F, S, T),
+\end{equation}
+where $C$ is the context, $F$ is the few-shot example, $S$ is the style skill, and $T$ is the LaTeX template. If the bundle is stable, the model can focus on content instead of guessing the paper's shape.
+
+The acceptance condition is equally local:
+\begin{equation}\label{eq:accept}
+A(D)=\mathbf{1}\{\text{$D$ contains problem framing, baseline, core observation, algorithm, proof, complexity, and edge cases}\},
+\end{equation}
+where $D$ is the draft. The harness does not replace review, but it gives the writer a concrete target.
 
 \section{Algorithm Design}
-The agent first renders a prompt bundle from configuration. It then asks the selected model to produce a section under the LaTeX output contract. Finally, it runs a deterministic harness over the draft and sends failures back through a review prompt.
+The agent first renders a prompt bundle from configuration. It then asks the selected model to produce a section under the LaTeX output contract. Finally, it runs a deterministic harness over the draft and sends failures back through a review prompt. The loop is small enough to inspect, but structured enough to keep the final draft honest.
 
-\begin{algorithm}
+\begin{algorithm}[tb]
+\small
 \caption{Paper Section Drafting Loop}
+\label{alg:draft-loop}
+\begin{flushleft}
+\hspace*{0.02in} \textbf{Input:}
+Context notes $C$;
+target venue $v$;
+style skill $S$;
+few-shot example $F$;
+LaTeX template $T$;
+harness rules $H$.\\
+\hspace*{0.02in} \textbf{Output:}
+Accepted LaTeX draft $D^{\star}$.
+\end{flushleft}
 \begin{algorithmic}[1]
-\State Render context, style, model profile, and few-shot examples.
-\State Generate a LaTeX section with the selected model.
-\State Evaluate problem framing, baseline, core observation, algorithm, proof, complexity, and edge cases.
-\State Revise until the harness and human review accept the draft.
+    \State $B \gets \mathrm{Render}(C, v, S, F, T)$
+    \State $D \gets \mathrm{Model}(B)$
+    \State $r \gets \mathrm{Evaluate}(D, H)$
+    \While{$r \neq \varnothing$}
+        \State $D \gets \mathrm{Revise}(D, r)$
+        \State $r \gets \mathrm{Evaluate}(D, H)$
+    \EndWhile
+    \State $D^{\star} \gets D$
+    \State \textbf{return} $D^{\star}$
 \end{algorithmic}
 \end{algorithm}
 
 \section{Correctness}
-The loop is correct as a guardrail because each required part of the algorithm section is represented as an explicit signal. If a draft omits the problem, proof, or complexity discussion, the harness rejects it. If the draft passes, it has at least exposed the structure needed for human verification.
+The loop is correct as a guardrail because each required part of the algorithm section is represented as an explicit signal. If a draft omits the problem, proof, or complexity discussion, the harness rejects it. If the draft passes, it has at least exposed the structure needed for human verification. More formally, whenever $A(D)=1$, the draft contains the signal groups that the template requires, so the output is structurally aligned with the writing contract.
 
 \section{Complexity}
-Let $n$ be the number of characters in the generated draft and $k$ the number of required signal groups. The deterministic harness scans the text for each group, so its time complexity is $O(kn)$ and its space complexity is $O(n)$ for the loaded draft.
+Let $n$ be the number of characters in the generated draft and $k$ the number of required signal groups. The deterministic harness scans the text for each group, so its time complexity is $O(kn)$, and its space complexity is $O(n)$ for the loaded draft. The revision loop may repeat, but each pass is still linear in the draft size.
 
 \section{Implementation Details And Edge Cases}
-The implementation should treat placeholder text as a warning, require full LaTeX structure for complete papers, and avoid storing API keys in configuration. Edge cases include empty drafts, drafts that only satisfy keywords without substance, and sections that need facts not present in context.
+The implementation should treat placeholder text as a warning, require full LaTeX structure for complete papers, and avoid storing API keys in configuration. Edge cases include empty drafts, drafts that only satisfy keywords without substance, and sections that need facts not present in context. In those cases the correct action is to mark the missing information explicitly instead of inventing it.
 
 \end{document}

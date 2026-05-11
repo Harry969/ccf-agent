@@ -2,28 +2,28 @@
 
 ## Problem Framing
 
-Given an array and a limit on the number of modifications, the task is to maximize the length of a segment that can be made valid. The input size is large enough that enumerating every segment and rebuilding its state would be too slow.
+Given an input sequence, a budget, and a validity condition, the task is to find the best feasible solution under the budget. The input size is large enough that a direct search over all candidates is not practical.
 
 ## Baseline And Bottleneck
 
-The direct baseline is to test each interval independently. Even if validity can be checked in linear time per left endpoint, the total cost is quadratic. The bottleneck is that adjacent intervals share almost all of their information, but the baseline discards it.
+The direct baseline tests each candidate independently. Even when each test is linear, the total cost becomes quadratic or worse. The bottleneck is that adjacent candidates share most of their state, but the baseline discards that reuse.
 
 ## Core Observation
 
-For a fixed right endpoint, if an interval is valid, then removing elements from the left cannot make it invalid. This monotonicity lets us maintain the minimal left boundary with a sliding window.
+For a fixed right boundary, feasibility is monotone in the left boundary. Once an interval becomes valid, shrinking it from the left cannot break validity. This monotonicity gives a one-way update rule.
 
 ## Algorithm Design
 
-We scan the right endpoint from left to right. The maintained state records the current interval and the number of modifications needed to make it valid. Whenever the cost exceeds the limit, we move the left endpoint until validity is restored. The best answer is the maximum window length seen after restoration.
+We scan the right boundary from left to right. The maintained state tracks the current interval, the resource usage inside it, and the best feasible answer seen so far. Whenever the resource limit is exceeded, we move the left boundary until feasibility is restored. The best answer is the maximum valid state encountered after restoration.
 
 ## Correctness
 
-The algorithm never misses an optimal interval because every right endpoint is considered. For that endpoint, the while loop stops at the smallest left boundary that makes the interval valid; every longer invalid interval has already been excluded, and every shorter valid interval is no better than the maintained one.
+The algorithm never misses an optimal interval because every right boundary is considered. For that boundary, the restoration loop stops at the smallest left boundary that makes the interval feasible. Any longer invalid interval has already been excluded, and any shorter valid interval is no better than the maintained one.
 
 ## Complexity
 
-Each endpoint moves monotonically from left to right. Therefore the time complexity is `O(n)`, and the space complexity is `O(1)` or `O(|Σ|)` depending on the maintained frequency structure.
+Each boundary moves monotonically from left to right. Therefore the time complexity is `O(n)`, and the space complexity is `O(1)` or `O(|\Sigma|)` depending on the maintained summary structure.
 
 ## Edge Cases
 
-The implementation must handle empty windows after shrinking, limits equal to zero, and repeated values that make the maintained cost change by more than one if updated in the wrong order.
+The implementation must handle empty windows after shrinking, budgets equal to zero, and repeated values that change the maintained cost by more than one if the updates are applied in the wrong order.
