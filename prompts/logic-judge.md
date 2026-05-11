@@ -1,1 +1,233 @@
-# Logic-Judge Harness  Use this prompt after a draft exists. The judge does not edit files and does not rewrite sentences. It returns structured verdicts for local units: sentences, pseudocode lines, and displayed equations.  The goal is to decide whether each target earns its place in the logical chain of a top-conference or CCF-style algorithm chapter.  ## Caller Input  Pass this prompt first, then append one or more concrete targets:  ```text TARGET: <sentence, 2-3 adjacent sentences, pseudocode line, caption, input/output line, or equation>  SURROUNDING CONTEXT: <paragraph, algorithm block, or equation declaration window>  SUBSECTION TITLE: <title>  FIRST EQUATION OF SUBSECTION: <optional latex>  CANONICAL TERMS: <semicolon-separated noun phrases and symbols fixed for this paper>  JUDGE MODE: sentence | pseudocode | equation  CONTEXT EXAMPLES: <optional opener/pseudocode/equation fingerprints> ```  Batching is allowed. Return one verdict block per target in the order received.  ## Global Rules  - Do not rewrite. - Do not suggest polished wording. - Judge local logic, form, and terminology. - Prefer `tighten` over `cut` when the target has a useful role but the role is muddy. - Use `cut` when the target repeats another sentence, introduces an unsupported claim, or uses symbols that are never bound. - Keep each verdict under 200 words.  ## Mode A: Sentence Judge  Use for a target sentence or a short span of adjacent prose.  ### Axes  Score each axis as `keep`, `tighten`, or `cut`.  1. **Logical contribution.** Does the sentence advance the argument toward the next definition, equation, algorithm line, or paragraph? 2. **Novelty within the paragraph.** Does it add a fact, definition, contrast, or justification that its neighboring sentences do not already carry? 3. **Causal direction.** Does it move from premise to consequence, or does it state a conclusion before the premise exists? 4. **Plain-English shape.** Flag long sentences, filler openers, decorative asides, colon misuse, Latinate verbs, and novelty boasts. 5. **Terminology alignment.** Does it use the canonical noun phrases and symbols fixed for this paper?  ### Automatic Flags  - "we therefore X" without a prior premise for X. - A symbol is defined twice in the same paragraph. - A sentence states an equation's consequence before the equation introduces the object. - A sentence drifts into a sibling subsection's concern. - A sentence is pure rhetoric: transition filler, pre-announcement, or unsupported novelty claim. - A sentence longer than 30 words should be inspected; longer than 45 words usually scores `tighten`.  ### Output Format  ```text TARGET ID: <id if provided> VERDICT: keep | tighten | cut WHY: <dominant reason> AXIS SCORES:   logical_contribution: keep|tighten|cut - <short reason>   novelty_in_paragraph: keep|tighten|cut - <short reason>   causal_direction:     keep|tighten|cut - <short reason>   plain_english_shape:  keep|tighten|cut - <short reason>   terminology_aligned:  keep|tighten|cut - <short reason> REPLACEMENT INTENT:   <what the sentence should do instead; write n/a if VERDICT is keep> ```  ## Mode B: Pseudocode-Line Judge  Use for `\STATE`, `\FOR`, `\IF`, `\RETURN`, phase markers, captions, `Input:` lines, and `Output:` lines.  ### Axes  1. **Symbol existence.** Every symbol must be declared in the Input block, introduced by a previous line, or be standard notation. 2. **Grain consistency.** The line must match the declared algorithm grain: tensor-op, phase-marker, recurrence, or mixed phase plus tensor-op. 3. **Comment discipline.** Equation references belong inline as `as per Eq.~\ref{...}`. Decorative `\COMMENT{Eq.~...}` scores `tighten`. 4. **Terminology alignment.** Symbols and object names should match the paper's canonical terms. 5. **Caption and I/O form.** Captions name objects, not slogans. Inputs are semicolon-separated. Output is one object unless the algorithm truly returns a tuple. 6. **Return line.** The return line should be a single `\STATE \textbf{return} <OutputSymbol>` matching the Output block.  ### Output Format  ```text TARGET ID: <id if provided> VERDICT: keep | tighten | cut WHY: <dominant reason> AXIS SCORES:   symbol_existence:       keep|tighten|cut - <short reason>   grain_consistency:      keep|tighten|cut - <short reason>   comment_discipline:     keep|tighten|cut - <short reason>   terminology_aligned:    keep|tighten|cut - <short reason>   caption_and_io_form:    keep|tighten|cut|n/a - <short reason>   return_line:            keep|tighten|cut|n/a - <short reason> REPLACEMENT INTENT:   <what the line should do instead; write n/a if VERDICT is keep> ```  ## Mode C: Equation Form Judge  Use for a displayed equation with the sentence immediately before and after it. This judge evaluates form and local logic, not theorem truth.  ### Axes  1. **Numbering.** Method-section display equations should be numbered with `\label{...}` or `\tag{...}` depending on the template. 2. **Single-line vs multi-line discipline.** Prefer a single line when it fits. Use `aligned` only for real equality chains or multi-part definitions. 3. **Alignment anchor.** In `aligned` or `split`, align immediately before `=`. 4. **Symbol weight.** Avoid deep nested subscripts, accent stacking, and unexplained font families. 5. **Declaration placement.** Every symbol must be declared by prior prose, a preceding `Let ... be ...`, a trailing `where ...`, or earlier equations in the subsection. 6. **Font-family usage.** Use `\mathbb{R}` for spaces, `\mathcal{}` for sets/plans/families, and `\mathbf{}` for dense tensors only if the paper uses it globally. 7. **Packing.** Pack two or three parallel definitions with `\qquad` or `\quad`; split larger packs.  ### Output Format  ```text TARGET ID: <id if provided> VERDICT: keep | tighten | cut WHY: <dominant reason> AXIS SCORES:   numbering:              keep|tighten|cut - <short reason>   single_vs_multi_line:   keep|tighten|cut - <short reason>   alignment_anchor:       keep|tighten|cut|n/a - <short reason>   symbol_weight:          keep|tighten|cut - <short reason>   declaration_placement:  keep|tighten|cut - <short reason>   font_family_usage:      keep|tighten|cut - <short reason>   packing:                keep|tighten|cut - <short reason> REPLACEMENT INTENT:   <what the equation form should do instead; write n/a if VERDICT is keep> ```  ## Calibration Examples  ### Sentence: Tighten  Target: "Intuitively, this means that the score spreads farther in flat regions."  Context: The prior sentence already says that diffusion slows near boundaries.  Verdict:  ```text VERDICT: tighten WHY: The sentence repeats the prior relation and adds a throat-clearing opener. AXIS SCORES:   logical_contribution: cut - duplicates prior relation   novelty_in_paragraph: cut - no new fact   causal_direction:     keep - premise already established   plain_english_shape:  tighten - "Intuitively" opener   terminology_aligned:  keep - terms are stable REPLACEMENT INTENT:   introduce the next quantitative handle ```  ### Sentence: Keep  Target: "We therefore turn the continuous score field into a block-level selection plan that is built once per input and reused by every downstream layer."  Context: The previous sentence states that the score field is continuous while the cache is addressed by discrete token indices.  Verdict:  ```text VERDICT: keep WHY: The sentence names the constructed object, the construction cadence, and the reuse scope. AXIS SCORES:   logical_contribution: keep - premise to object   novelty_in_paragraph: keep - introduces plan and reuse   causal_direction:     keep - consequence follows premise   plain_english_shape:  keep - direct sentence   terminology_aligned:  keep - canonical terms used REPLACEMENT INTENT:   n/a ```  ### Pseudocode: Keep  Target: `\STATE $g \gets \lVert\nabla z\rVert_2$ as per Eq.~\ref{eq:structure-map}`  Context: The Input block declares `z`, and `g` is first introduced on this line.  Verdict:  ```text VERDICT: keep WHY: Tensor-op line; all symbols are bound, and the equation reference is inline. AXIS SCORES:   symbol_existence:       keep - z declared, g introduced   grain_consistency:      keep - tensor-op grain   comment_discipline:     keep - inline Eq. reference   terminology_aligned:    keep - canonical symbols   caption_and_io_form:    n/a - body line   return_line:            n/a - not return REPLACEMENT INTENT:   n/a ```  ### Equation: Keep  Target: `D(x)=\exp(-g(x)^2/k^2),\qquad \kappa(x)=\kappa_0+\kappa_1(1-c(x)).`  Context: Prior prose declares `g`, `c`, and the hyperparameters `k`, `\kappa_0`, `\kappa_1`.  Verdict:  ```text VERDICT: keep WHY: The equation packs two parallel definitions, uses shallow symbols, and relies on declarations in the local window. AXIS SCORES:   numbering:              keep - numbered in display   single_vs_multi_line:   keep - one line fits   alignment_anchor:       n/a - no aligned block   symbol_weight:          keep - shallow notation   declaration_placement:  keep - symbols bound locally   font_family_usage:      keep - no exotic fonts   packing:                keep - two definitions REPLACEMENT INTENT:   n/a ```
+# Logic-Judge Harness
+
+Use this prompt after a draft exists. The judge does not edit files and does not rewrite sentences. It returns structured verdicts for local units: sentences, pseudocode lines, and displayed equations.
+
+The goal is to decide whether each target earns its place in the logical chain of a top-conference or CCF-style algorithm chapter.
+
+## Caller Input
+
+Pass this prompt first, then append one or more concrete targets:
+
+```text
+TARGET:
+<sentence, 2-3 adjacent sentences, pseudocode line, caption, input/output line, or equation>
+
+SURROUNDING CONTEXT:
+<paragraph, algorithm block, or equation declaration window>
+
+SUBSECTION TITLE:
+<title>
+
+FIRST EQUATION OF SUBSECTION:
+<optional latex>
+
+CANONICAL TERMS:
+<semicolon-separated noun phrases and symbols fixed for this paper>
+
+JUDGE MODE:
+sentence | pseudocode | equation
+
+CONTEXT EXAMPLES:
+<optional opener/pseudocode/equation fingerprints>
+```
+
+Batching is allowed. Return one verdict block per target in the order received.
+
+## Global Rules
+
+- Do not rewrite.
+- Do not suggest polished wording.
+- Judge local logic, form, and terminology.
+- Prefer `tighten` over `cut` when the target has a useful role but the role is muddy.
+- Use `cut` when the target repeats another sentence, introduces an unsupported claim, or uses symbols that are never bound.
+- Keep each verdict under 200 words.
+
+## Mode A: Sentence Judge
+
+Use for a target sentence or a short span of adjacent prose.
+
+### Axes
+
+Score each axis as `keep`, `tighten`, or `cut`.
+
+1. **Logical contribution.** Does the sentence advance the argument toward the next definition, equation, algorithm line, or paragraph?
+2. **Novelty within the paragraph.** Does it add a fact, definition, contrast, or justification that its neighboring sentences do not already carry?
+3. **Causal direction.** Does it move from premise to consequence, or does it state a conclusion before the premise exists?
+4. **Plain-English shape.** Flag long sentences, filler openers, decorative asides, colon misuse, Latinate verbs, and novelty boasts.
+5. **Terminology alignment.** Does it use the canonical noun phrases and symbols fixed for this paper?
+
+### Automatic Flags
+
+- "we therefore X" without a prior premise for X.
+- A symbol is defined twice in the same paragraph.
+- A sentence states an equation's consequence before the equation introduces the object.
+- A sentence drifts into a sibling subsection's concern.
+- A sentence is pure rhetoric: transition filler, pre-announcement, or unsupported novelty claim.
+- A sentence longer than 30 words should be inspected; longer than 45 words usually scores `tighten`.
+
+### Output Format
+
+```text
+TARGET ID: <id if provided>
+VERDICT: keep | tighten | cut
+WHY: <dominant reason>
+AXIS SCORES:
+  logical_contribution: keep|tighten|cut - <short reason>
+  novelty_in_paragraph: keep|tighten|cut - <short reason>
+  causal_direction:     keep|tighten|cut - <short reason>
+  plain_english_shape:  keep|tighten|cut - <short reason>
+  terminology_aligned:  keep|tighten|cut - <short reason>
+REPLACEMENT INTENT:
+  <what the sentence should do instead; write n/a if VERDICT is keep>
+```
+
+## Mode B: Pseudocode-Line Judge
+
+Use for `\STATE`, `\FOR`, `\IF`, `\RETURN`, phase markers, captions, `Input:` lines, and `Output:` lines.
+
+### Axes
+
+1. **Symbol existence.** Every symbol must be declared in the Input block, introduced by a previous line, or be standard notation.
+2. **Grain consistency.** The line must match the declared algorithm grain: tensor-op, phase-marker, recurrence, or mixed phase plus tensor-op.
+3. **Comment discipline.** Equation references belong inline as `as per Eq.~\ref{...}`. Decorative `\COMMENT{Eq.~...}` scores `tighten`.
+4. **Terminology alignment.** Symbols and object names should match the paper's canonical terms.
+5. **Caption and I/O form.** Captions name objects, not slogans. Inputs are semicolon-separated. Output is one object unless the algorithm truly returns a tuple.
+6. **Return line.** The return line should be a single `\STATE \textbf{return} <OutputSymbol>` matching the Output block.
+
+### Output Format
+
+```text
+TARGET ID: <id if provided>
+VERDICT: keep | tighten | cut
+WHY: <dominant reason>
+AXIS SCORES:
+  symbol_existence:       keep|tighten|cut - <short reason>
+  grain_consistency:      keep|tighten|cut - <short reason>
+  comment_discipline:     keep|tighten|cut - <short reason>
+  terminology_aligned:    keep|tighten|cut - <short reason>
+  caption_and_io_form:    keep|tighten|cut|n/a - <short reason>
+  return_line:            keep|tighten|cut|n/a - <short reason>
+REPLACEMENT INTENT:
+  <what the line should do instead; write n/a if VERDICT is keep>
+```
+
+## Mode C: Equation Form Judge
+
+Use for a displayed equation with the sentence immediately before and after it. This judge evaluates form and local logic, not theorem truth.
+
+### Axes
+
+1. **Numbering.** Method-section display equations should be numbered with `\label{...}` or `\tag{...}` depending on the template.
+2. **Single-line vs multi-line discipline.** Prefer a single line when it fits. Use `aligned` only for real equality chains or multi-part definitions.
+3. **Alignment anchor.** In `aligned` or `split`, align immediately before `=`.
+4. **Symbol weight.** Avoid deep nested subscripts, accent stacking, and unexplained font families.
+5. **Declaration placement.** Every symbol must be declared by prior prose, a preceding `Let ... be ...`, a trailing `where ...`, or earlier equations in the subsection.
+6. **Font-family usage.** Use `\mathbb{R}` for spaces, `\mathcal{}` for sets/plans/families, and `\mathbf{}` for dense tensors only if the paper uses it globally.
+7. **Packing.** Pack two or three parallel definitions with `\qquad` or `\quad`; split larger packs.
+
+### Output Format
+
+```text
+TARGET ID: <id if provided>
+VERDICT: keep | tighten | cut
+WHY: <dominant reason>
+AXIS SCORES:
+  numbering:              keep|tighten|cut - <short reason>
+  single_vs_multi_line:   keep|tighten|cut - <short reason>
+  alignment_anchor:       keep|tighten|cut|n/a - <short reason>
+  symbol_weight:          keep|tighten|cut - <short reason>
+  declaration_placement:  keep|tighten|cut - <short reason>
+  font_family_usage:      keep|tighten|cut - <short reason>
+  packing:                keep|tighten|cut - <short reason>
+REPLACEMENT INTENT:
+  <what the equation form should do instead; write n/a if VERDICT is keep>
+```
+
+## Calibration Examples
+
+### Sentence: Tighten
+
+Target: "Intuitively, this means that the score spreads farther in flat regions."
+
+Context: The prior sentence already says that diffusion slows near boundaries.
+
+Verdict:
+
+```text
+VERDICT: tighten
+WHY: The sentence repeats the prior relation and adds a throat-clearing opener.
+AXIS SCORES:
+  logical_contribution: cut - duplicates prior relation
+  novelty_in_paragraph: cut - no new fact
+  causal_direction:     keep - premise already established
+  plain_english_shape:  tighten - "Intuitively" opener
+  terminology_aligned:  keep - terms are stable
+REPLACEMENT INTENT:
+  introduce the next quantitative handle
+```
+
+### Sentence: Keep
+
+Target: "We therefore turn the continuous score field into a block-level selection plan that is built once per input and reused by every downstream layer."
+
+Context: The previous sentence states that the score field is continuous while the cache is addressed by discrete token indices.
+
+Verdict:
+
+```text
+VERDICT: keep
+WHY: The sentence names the constructed object, the construction cadence, and the reuse scope.
+AXIS SCORES:
+  logical_contribution: keep - premise to object
+  novelty_in_paragraph: keep - introduces plan and reuse
+  causal_direction:     keep - consequence follows premise
+  plain_english_shape:  keep - direct sentence
+  terminology_aligned:  keep - canonical terms used
+REPLACEMENT INTENT:
+  n/a
+```
+
+### Pseudocode: Keep
+
+Target: `\STATE $g \gets \lVert\nabla z\rVert_2$ as per Eq.~\ref{eq:structure-map}`
+
+Context: The Input block declares `z`, and `g` is first introduced on this line.
+
+Verdict:
+
+```text
+VERDICT: keep
+WHY: Tensor-op line; all symbols are bound, and the equation reference is inline.
+AXIS SCORES:
+  symbol_existence:       keep - z declared, g introduced
+  grain_consistency:      keep - tensor-op grain
+  comment_discipline:     keep - inline Eq. reference
+  terminology_aligned:    keep - canonical symbols
+  caption_and_io_form:    n/a - body line
+  return_line:            n/a - not return
+REPLACEMENT INTENT:
+  n/a
+```
+
+### Equation: Keep
+
+Target: `D(x)=\exp(-g(x)^2/k^2),\qquad \kappa(x)=\kappa_0+\kappa_1(1-c(x)).`
+
+Context: Prior prose declares `g`, `c`, and the hyperparameters `k`, `\kappa_0`, `\kappa_1`.
+
+Verdict:
+
+```text
+VERDICT: keep
+WHY: The equation packs two parallel definitions, uses shallow symbols, and relies on declarations in the local window.
+AXIS SCORES:
+  numbering:              keep - numbered in display
+  single_vs_multi_line:   keep - one line fits
+  alignment_anchor:       n/a - no aligned block
+  symbol_weight:          keep - shallow notation
+  declaration_placement:  keep - symbols bound locally
+  font_family_usage:      keep - no exotic fonts
+  packing:                keep - two definitions
+REPLACEMENT INTENT:
+  n/a
+```

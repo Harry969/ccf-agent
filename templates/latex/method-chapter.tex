@@ -1,1 +1,94 @@
-% Generic top-conference method chapter template. % Replace bracketed placeholders with paper-specific objects.  \section{[Method Title]}\label{sec:method}  Given [input object] and [task condition], our method runs [number] stages before producing [output object]. The first stage constructs [object one], which captures [phenomenon or constraint]. The second stage turns it into [object two], a [continuous/discrete/probabilistic] representation that can be optimized locally. The final stage builds [object three], a reusable plan that drives [prediction / inference / decoding / decision]. This section defines the three objects and shows how they fit into one pipeline.  \subsection{[Stage 1: Object or Signal]}\label{sec:stage-one}  [Phenomenon] creates the first difficulty: [why direct use is insufficient]. We therefore introduce [object one] as the quantitative handle for this subsection. For each [instance] $i$, let [symbol declarations]. We define \begin{equation}\label{eq:stage-one-score}     s_i(x)=\operatorname{Score}\bigl([local\ feature], [reference\ set]\bigr), \end{equation} where [short declaration of free symbols]. A large value of $s_i(x)$ indicates [local interpretation], while a small value indicates [contrast].  \subsection{[Stage 2: Structured Representation]}\label{sec:stage-two}  The signal $s_i$ is [coarse/noisy/discrete], but the downstream procedure requires [structured property]. We convert it into [object two] by combining [source term] with [regularizer or constraint]. Let $g_i(x)$ be [structure map or auxiliary signal]. The representation is defined by \begin{equation}\label{eq:stage-two-object}     z_i^{\star}     =     \operatorname*{arg\,min}_{z}     \left[         \sum_x \ell(z(x), s_i(x))         +         \lambda \sum_{(x,y)\in E} w_i(x,y)(z(x)-z(y))^2     \right]. \end{equation} The first term keeps the representation faithful to the signal, and the second term prevents [undesired behavior] across [boundary or constraint].  \begin{algorithm}[tb] \small \caption{[Object Two] Construction} \label{alg:stage-two} \begin{flushleft} \hspace*{0.02in} \textbf{Input:} Signal $s_i$; structure map $g_i$; regularization weight $\lambda$; iteration count $T$.\\ \hspace*{0.02in} \textbf{Output:} Structured representation $z_i^{\star}$. \end{flushleft} \begin{algorithmic}[1]     \State $z_i^{(0)} \gets s_i$     \For{$t=0$ \textbf{to} $T-1$}         \State $z_i^{(t+1)} \gets \operatorname{Update}(z_i^{(t)}, s_i, g_i, \lambda)$ as per Eq.~\ref{eq:stage-two-object}     \EndFor     \State $z_i^{\star} \gets z_i^{(T)}$     \State \textbf{return} $z_i^{\star}$ \end{algorithmic} \end{algorithm}  \paragraph{Complexity.} Let $n$ be the number of local units and $T$ the iteration count. Each update touches [neighborhood size] neighbors per unit, so constructing $z_i^{\star}$ costs $O(Tn)$ time and $O(n)$ space.  \subsection{[Stage 3: Plan or Allocation]}\label{sec:stage-three}  The representation $z_i^{\star}$ is [continuous/global/local], but the final system needs [discrete action or allocation]. We therefore build [object three] once per input and reuse it for [scope]. Let $m_i$ be the mass of the representation, \begin{equation}\label{eq:stage-three-budget}     m_i=\frac{1}{n}\sum_x z_i^{\star}(x),     \qquad     b_i=b_{\min}+(b_{\max}-b_{\min})m_i. \end{equation} The budget increases only when the representation carries broad evidence, so easy instances remain cheap while difficult instances keep more information.  \begin{algorithm}[tb] \small \caption{End-to-End [Method Name] Pipeline} \label{alg:e2e} \begin{flushleft} \hspace*{0.02in} \textbf{Input:} Instances $\{I_i\}_{i=1}^{N}$; model or solver $\mathcal{M}$; stage-one parameters; stage-two parameters; budget bounds $(b_{\min}, b_{\max})$.\\ \hspace*{0.02in} \textbf{Output:} Outputs $\{y_i\}_{i=1}^{N}$. \end{flushleft} \begin{algorithmic}[1]     \For{$i=1$ \textbf{to} $N$}         \State $s_i \gets$ construct stage-one signal for $I_i$         \State $z_i^{\star} \gets$ \textsc{StageTwo}$(s_i)$         \State $b_i \gets$ adaptive budget from Eq.~\ref{eq:stage-three-budget}         \State $\mathcal{P}_i \gets$ build plan from $(z_i^{\star}, b_i)$         \State $y_i \gets \mathcal{M}(I_i, \mathcal{P}_i)$     \EndFor     \State \textbf{return} $\{y_i\}_{i=1}^{N}$ \end{algorithmic} \end{algorithm}  \paragraph{End-to-end complexity.} The stage-one signal costs [cost]. Stage two costs $O(Tn)$ per instance. Stage three costs [cost] to sort, allocate, or gather. The total cost is [dominant bound], and the reusable plan amortizes its construction over [reuse scope].
+% Generic top-conference method chapter template.
+% Replace bracketed placeholders with paper-specific objects.
+
+\section{[Method Title]}\label{sec:method}
+
+Given [input object] and [task condition], our method runs [number] stages before producing [output object]. The first stage constructs [object one], which captures [phenomenon or constraint]. The second stage turns it into [object two], a [continuous/discrete/probabilistic] representation that can be optimized locally. The final stage builds [object three], a reusable plan that drives [prediction / inference / decoding / decision]. This section defines the three objects and shows how they fit into one pipeline.
+
+\subsection{[Stage 1: Object or Signal]}\label{sec:stage-one}
+
+[Phenomenon] creates the first difficulty: [why direct use is insufficient]. We therefore introduce [object one] as the quantitative handle for this subsection. For each [instance] $i$, let [symbol declarations]. We define
+\begin{equation}\label{eq:stage-one-score}
+    s_i(x)=\operatorname{Score}\bigl([local\ feature], [reference\ set]\bigr),
+\end{equation}
+where [short declaration of free symbols]. A large value of $s_i(x)$ indicates [local interpretation], while a small value indicates [contrast].
+
+\subsection{[Stage 2: Structured Representation]}\label{sec:stage-two}
+
+The signal $s_i$ is [coarse/noisy/discrete], but the downstream procedure requires [structured property]. We convert it into [object two] by combining [source term] with [regularizer or constraint]. Let $g_i(x)$ be [structure map or auxiliary signal]. The representation is defined by
+\begin{equation}\label{eq:stage-two-object}
+    z_i^{\star}
+    =
+    \operatorname*{arg\,min}_{z}
+    \left[
+        \sum_x \ell(z(x), s_i(x))
+        +
+        \lambda \sum_{(x,y)\in E} w_i(x,y)(z(x)-z(y))^2
+    \right].
+\end{equation}
+The first term keeps the representation faithful to the signal, and the second term prevents [undesired behavior] across [boundary or constraint].
+
+\begin{algorithm}[tb]
+\small
+\caption{[Object Two] Construction}
+\label{alg:stage-two}
+\begin{flushleft}
+\hspace*{0.02in} \textbf{Input:}
+Signal $s_i$;
+structure map $g_i$;
+regularization weight $\lambda$;
+iteration count $T$.\\
+\hspace*{0.02in} \textbf{Output:}
+Structured representation $z_i^{\star}$.
+\end{flushleft}
+\begin{algorithmic}[1]
+    \State $z_i^{(0)} \gets s_i$
+    \For{$t=0$ \textbf{to} $T-1$}
+        \State $z_i^{(t+1)} \gets \operatorname{Update}(z_i^{(t)}, s_i, g_i, \lambda)$ as per Eq.~\ref{eq:stage-two-object}
+    \EndFor
+    \State $z_i^{\star} \gets z_i^{(T)}$
+    \State \textbf{return} $z_i^{\star}$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Complexity.}
+Let $n$ be the number of local units and $T$ the iteration count. Each update touches [neighborhood size] neighbors per unit, so constructing $z_i^{\star}$ costs $O(Tn)$ time and $O(n)$ space.
+
+\subsection{[Stage 3: Plan or Allocation]}\label{sec:stage-three}
+
+The representation $z_i^{\star}$ is [continuous/global/local], but the final system needs [discrete action or allocation]. We therefore build [object three] once per input and reuse it for [scope]. Let $m_i$ be the mass of the representation,
+\begin{equation}\label{eq:stage-three-budget}
+    m_i=\frac{1}{n}\sum_x z_i^{\star}(x),
+    \qquad
+    b_i=b_{\min}+(b_{\max}-b_{\min})m_i.
+\end{equation}
+The budget increases only when the representation carries broad evidence, so easy instances remain cheap while difficult instances keep more information.
+
+\begin{algorithm}[tb]
+\small
+\caption{End-to-End [Method Name] Pipeline}
+\label{alg:e2e}
+\begin{flushleft}
+\hspace*{0.02in} \textbf{Input:}
+Instances $\{I_i\}_{i=1}^{N}$;
+model or solver $\mathcal{M}$;
+stage-one parameters;
+stage-two parameters;
+budget bounds $(b_{\min}, b_{\max})$.\\
+\hspace*{0.02in} \textbf{Output:}
+Outputs $\{y_i\}_{i=1}^{N}$.
+\end{flushleft}
+\begin{algorithmic}[1]
+    \For{$i=1$ \textbf{to} $N$}
+        \State $s_i \gets$ construct stage-one signal for $I_i$
+        \State $z_i^{\star} \gets$ \textsc{StageTwo}$(s_i)$
+        \State $b_i \gets$ adaptive budget from Eq.~\ref{eq:stage-three-budget}
+        \State $\mathcal{P}_i \gets$ build plan from $(z_i^{\star}, b_i)$
+        \State $y_i \gets \mathcal{M}(I_i, \mathcal{P}_i)$
+    \EndFor
+    \State \textbf{return} $\{y_i\}_{i=1}^{N}$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{End-to-end complexity.}
+The stage-one signal costs [cost]. Stage two costs $O(Tn)$ per instance. Stage three costs [cost] to sort, allocate, or gather. The total cost is [dominant bound], and the reusable plan amortizes its construction over [reuse scope].
