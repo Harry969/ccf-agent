@@ -22,6 +22,7 @@ The project is intentionally model-agnostic. You can point it at any model/API i
 - Algorithm chapters with problem framing, observations, method, proof, complexity, and implementation notes.
 - Prompt bundles that combine user context, few-shot examples, style skill, model profile, and output contract.
 - Lightweight checks for missing technical sections, placeholder leakage, and LaTeX structure.
+- Advanced prompt-based review for sentence logic, pseudocode lines, and equation form.
 
 ## Quick Start
 
@@ -62,6 +63,7 @@ ccf-agent/
   docs/
     workflow.md              # end-to-end agent workflow
     customization.md         # how users replace context/style/model/API
+    advanced-harness.md      # sentence/pseudocode/equation judging workflow
     vision.md                # project philosophy
   examples/
     ccf-paper/               # complete paper-writing example
@@ -73,6 +75,7 @@ ccf-agent/
     sections/
   prompts/
     *.md                     # system, context, paper, algorithm, review prompts
+    logic-judge.md
   skills/
     personal-writing-style.md
   templates/
@@ -101,7 +104,8 @@ No secret keys are stored in this repository. Put API keys in your own environme
 3. Ask the chosen model to draft or revise a LaTeX section.
 4. Save the generated `.tex` into the paper scaffold.
 5. Run `ccf-agent evaluate` or `python harness/evaluate.py`.
-6. Iterate with `prompts/review.md` until the harness and human review agree.
+6. Run `prompts/logic-judge.md` on dense paragraphs, pseudocode, and equations.
+7. Iterate with `prompts/review.md` until the harness and human review agree.
 
 ## License
 

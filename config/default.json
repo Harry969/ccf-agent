@@ -55,6 +55,7 @@
   },
   "harness": {
     "require_latex": true,
-    "minimum_sections": 4
+    "minimum_sections": 4,
+    "advanced_prompt": "prompts/logic-judge.md"
   }
 }
