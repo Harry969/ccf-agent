@@ -15,9 +15,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Check a CCF/paper draft.")
     parser.add_argument("draft", type=Path, help="Markdown or LaTeX draft to check.")
     parser.add_argument("--require-latex", action="store_true", help="Require full LaTeX document structure.")
+    parser.add_argument("--minimum-sections", type=int, help="Require at least this many LaTeX sections.")
     args = parser.parse_args()
 
-    result = evaluate_file(args.draft, require_latex=args.require_latex or args.draft.suffix == ".tex")
+    result = evaluate_file(
+        args.draft,
+        require_latex=args.require_latex or args.draft.suffix == ".tex",
+        minimum_sections=args.minimum_sections,
+    )
 
     if result.warnings:
         print("Warnings:")

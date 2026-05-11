@@ -24,6 +24,20 @@
   "few_shot": {
     "path": "examples/few-shot/algorithm-chapter.md"
   },
+  "review": {
+    "context_examples": "examples/ccf-paper/context-examples.md",
+    "canonical_terms": [
+      "problem statement",
+      "baseline bottleneck",
+      "core observation",
+      "algorithm state",
+      "transition",
+      "correctness lemma",
+      "time complexity",
+      "space complexity"
+    ],
+    "judge_modes": ["sentence", "pseudocode", "equation"]
+  },
   "latex": {
     "template": "templates/latex/conference-paper.tex",
     "title": "A Configurable Agent Template for Algorithmic Paper Writing",

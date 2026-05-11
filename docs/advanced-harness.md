@@ -17,6 +17,12 @@ opus4.7-max thinking + few-shot + harness + context prompt
 
 The prompt template is in `prompts/logic-judge.md`.
 
+You can generate concrete targets automatically:
+
+```powershell
+python -m ccf_agent.cli judge-pack paper/sections/method.tex --out build/review-pack.md
+```
+
 ## Why This Exists
 
 A paper section can pass a coarse harness while still feeling weak. Typical failures:
@@ -57,9 +63,10 @@ Batching is fine. For a first paragraph, send all sentences and request one verd
 
 1. Generate a draft with the main prompt bundle.
 2. Run the deterministic harness.
-3. Run the advanced judge on the first paragraph of each technical subsection.
-4. Run the pseudocode judge on algorithm blocks.
-5. Run the equation judge on new displayed equations.
-6. Rewrite only the spans marked `tighten` or `cut`.
+3. Generate `build/review-pack.md` with `ccf-agent judge-pack`.
+4. Run the advanced judge on dense sentences in each technical subsection.
+5. Run the pseudocode judge on algorithm blocks.
+6. Run the equation judge on new displayed equations.
+7. Rewrite only the spans marked `tighten` or `cut`.
 
 The judge should not rewrite directly. Keeping judgment separate from rewriting makes the workflow easier to audit.

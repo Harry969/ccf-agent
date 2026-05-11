@@ -23,6 +23,18 @@ Set `style.path` to your own writing skill. A useful style skill should say what
 
 Set `few_shot.path` to an example section that has the exact density you want. The model will imitate structure, pacing, and proof granularity more reliably when the few-shot file is close to the target task.
 
+## Replace Review Context
+
+Set `review.context_examples` to a Markdown file containing rhetorical anchors, opener patterns, pseudocode fingerprints, and equation form notes. Set `review.canonical_terms` to the noun phrases and symbols the paper must use consistently.
+
+You can create a first draft of this file from local paper notes:
+
+```powershell
+python -m ccf_agent.cli context-brief --source md_output --out build/context-brief.md
+```
+
+Then edit the brief by hand before using it in a model call. The brief should preserve structure and writing patterns, not copied claims.
+
 ## Replace Model
 
 Edit the `model` block:

@@ -34,6 +34,7 @@ def render_prompt(config: AgentConfig) -> str:
     style = config.get("style", {})
     latex = config.get("latex", {})
     few_shot = config.get("few_shot", {})
+    review = config.get("review", {})
 
     sections = [
         "# CCF Agent Prompt Bundle",
@@ -42,6 +43,7 @@ def render_prompt(config: AgentConfig) -> str:
         _format_mapping("Paper Context", context),
         _format_mapping("LaTeX Contract", latex),
         "## System Prompt\n" + _read_repo_file("prompts/system.md").strip(),
+        "## Orchestrator Prompt\n" + _read_repo_file("prompts/orchestrator.md").strip(),
         "## Context Prompt\n" + _read_repo_file("prompts/context.md").strip(),
         "## Paper Writer Prompt\n" + _read_repo_file("prompts/paper-writer.md").strip(),
         "## Algorithm Chapter Prompt\n" + _read_repo_file("prompts/algorithm-chapter.md").strip(),
@@ -58,6 +60,17 @@ def render_prompt(config: AgentConfig) -> str:
     user_context_path = context.get("source")
     if user_context_path:
         sections.append("## User Context Source\n" + config.read_text(user_context_path).strip())
+
+    context_examples_path = review.get("context_examples")
+    if context_examples_path:
+        sections.append("## Rhetorical Context Examples\n" + config.read_text(context_examples_path).strip())
+
+    canonical_terms = review.get("canonical_terms")
+    if canonical_terms:
+        sections.append("## Canonical Terms\n" + "\n".join(f"- {term}" for term in canonical_terms))
+
+    if review:
+        sections.append(_format_mapping("Review Protocol", review))
 
     final_contract = latex.get("output_contract", "Return compilable LaTeX only.")
     sections.append("## Final Output Contract\n" + final_contract.strip())

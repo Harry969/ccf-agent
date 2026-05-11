@@ -21,6 +21,8 @@ The project is intentionally model-agnostic. You can point it at any model/API i
 - A complete conference paper scaffold in LaTeX.
 - Algorithm chapters with problem framing, observations, method, proof, complexity, and implementation notes.
 - Prompt bundles that combine user context, few-shot examples, style skill, model profile, and output contract.
+- Context briefs distilled from local Markdown literature notes.
+- Logic-judge review packs extracted from drafts for sentence, pseudocode, and equation review.
 - Lightweight checks for missing technical sections, placeholder leakage, and LaTeX structure.
 - Advanced prompt-based review for sentence logic, pseudocode lines, and equation form.
 
@@ -44,6 +46,18 @@ Run the harness on the included sample output:
 python harness/evaluate.py examples/ccf-paper/expected-output.tex
 ```
 
+Build a compact context brief from local paper notes:
+
+```powershell
+python -m ccf_agent.cli context-brief --source path\to\md_notes --out build\context-brief.md --limit 12
+```
+
+Create review targets for the logic judge:
+
+```powershell
+python -m ccf_agent.cli judge-pack examples/ccf-paper/expected-output.tex --out build/review-pack.md --context-examples examples/ccf-paper/context-examples.md
+```
+
 Or use the console script after installing locally:
 
 ```powershell
@@ -64,6 +78,7 @@ ccf-agent/
     workflow.md              # end-to-end agent workflow
     customization.md         # how users replace context/style/model/API
     advanced-harness.md      # sentence/pseudocode/equation judging workflow
+    corpus-and-review-pack.md # context brief and judge-pack commands
     vision.md                # project philosophy
   examples/
     ccf-paper/               # complete paper-writing example
@@ -93,6 +108,7 @@ You can customize:
 - `style`: personal writing style skill and forbidden expressions.
 - `latex`: template, title, authors, abstract seed, sections, and bibliography path.
 - `few_shot`: examples that define pacing and technical density.
+- `review`: canonical terms, context examples, and judge modes.
 - `harness`: checks that must pass before a draft is considered usable.
 
 No secret keys are stored in this repository. Put API keys in your own environment or orchestration layer.
@@ -100,12 +116,14 @@ No secret keys are stored in this repository. Put API keys in your own environme
 ## Agent Loop
 
 1. Collect paper context: problem, contribution, method, experiments, target venue, and author style.
-2. Render a prompt bundle with `ccf-agent render`.
-3. Ask the chosen model to draft or revise a LaTeX section.
-4. Save the generated `.tex` into the paper scaffold.
-5. Run `ccf-agent evaluate` or `python harness/evaluate.py`.
-6. Run `prompts/logic-judge.md` on dense paragraphs, pseudocode, and equations.
-7. Iterate with `prompts/review.md` until the harness and human review agree.
+2. Optionally build a context brief from local Markdown notes with `ccf-agent context-brief`.
+3. Render a prompt bundle with `ccf-agent render`.
+4. Ask the chosen model to draft or revise a LaTeX section.
+5. Save the generated `.tex` into the paper scaffold.
+6. Run `ccf-agent evaluate` or `python harness/evaluate.py`.
+7. Create a review pack with `ccf-agent judge-pack`.
+8. Run `prompts/logic-judge.md` on dense paragraphs, pseudocode, and equations.
+9. Iterate with `prompts/review.md` until the harness and human review agree.
 
 ## License
 
