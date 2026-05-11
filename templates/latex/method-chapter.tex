@@ -5,6 +5,15 @@
 
 Given [input object] and [task condition], our method runs [number] stages before producing [output object]. The first stage constructs [object one], which captures [phenomenon or constraint]. The second stage turns it into [object two], a [continuous/discrete/probabilistic] representation that can be optimized locally. The final stage builds [object three], a reusable plan that drives [prediction / inference / decoding / decision]. This section defines the three objects and shows how they fit into one pipeline.
 
+\paragraph{Problem framing.}
+The input is [input definition], the output is [output definition], and the objective is [objective]. A valid solution must respect [hard constraint] while preserving [quantity or invariant].
+
+\paragraph{Baseline and bottleneck.}
+The direct baseline [baseline behavior]. It fails because [bottleneck], which becomes visible when [scale, distribution, or edge case]. The rest of the section constructs the object that removes this bottleneck.
+
+\paragraph{Core observation.}
+The key observation is that [local property] determines [global decision]. Once [condition] holds, [consequence] follows without recomputing [expensive object]. This observation gives the stage order used below.
+
 \subsection{[Stage 1: Object or Signal]}\label{sec:stage-one}
 
 [Phenomenon] creates the first difficulty: [why direct use is insufficient]. We therefore introduce [object one] as the quantitative handle for this subsection. For each [instance] $i$, let [symbol declarations]. We define
@@ -12,6 +21,9 @@ Given [input object] and [task condition], our method runs [number] stages befor
     s_i(x)=\operatorname{Score}\bigl([local\ feature], [reference\ set]\bigr),
 \end{equation}
 where [short declaration of free symbols]. A large value of $s_i(x)$ indicates [local interpretation], while a small value indicates [contrast].
+
+\paragraph{Stage-one edge case.}
+If [object one] is empty or degenerate, use [fallback signal] rather than inventing evidence. This keeps later stages defined without changing the paper's claims.
 
 \subsection{[Stage 2: Structured Representation]}\label{sec:stage-two}
 
@@ -27,6 +39,9 @@ The signal $s_i$ is [coarse/noisy/discrete], but the downstream procedure requir
     \right].
 \end{equation}
 The first term keeps the representation faithful to the signal, and the second term prevents [undesired behavior] across [boundary or constraint].
+
+\paragraph{Correctness of the representation.}
+By construction, $z_i^{\star}$ minimizes the local objective while respecting the regularizer. Therefore any downstream step that depends only on the required property can use $z_i^{\star}$ in place of the raw signal.
 
 \begin{algorithm}[tb]
 \small
@@ -92,3 +107,6 @@ Outputs $\{y_i\}_{i=1}^{N}$.
 
 \paragraph{End-to-end complexity.}
 The stage-one signal costs [cost]. Stage two costs $O(Tn)$ per instance. Stage three costs [cost] to sort, allocate, or gather. The total cost is [dominant bound], and the reusable plan amortizes its construction over [reuse scope].
+
+\paragraph{Implementation details and edge cases.}
+The implementation must bind every symbol before use, preserve the original order when gathering selected objects, and keep [anchor or boundary objects] unconditionally. If [stage-one failure] occurs, the fallback from Sec.~\ref{sec:stage-one} still produces a valid but conservative plan. If [budget or capacity] is zero, return [safe empty output] and state that the corresponding instance is outside the method's operating regime.

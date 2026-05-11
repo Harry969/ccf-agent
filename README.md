@@ -76,6 +76,7 @@ ccf-agent/
   config/
     default.json             # model/profile/template defaults
   docs/
+    kv-reference-map.md     # how the generic template maps to the kv reference
     workflow.md              # end-to-end agent workflow
     customization.md         # how users replace context/style/model/API
     advanced-harness.md      # sentence/pseudocode/equation judging workflow
